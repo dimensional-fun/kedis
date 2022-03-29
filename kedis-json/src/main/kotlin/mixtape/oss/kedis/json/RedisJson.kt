@@ -41,7 +41,7 @@ public class RedisJson(public val serializer: Json = DEFAULT_SERIALIZER) {
     public suspend fun get(key: String, vararg paths: String): String? =
         executeCommand(RedisJsonCommands.get(key, *paths))
 
-    public suspend fun mget(path: String, vararg keys: String): List<String>? =
+    public suspend fun mget(path: String, vararg keys: String): List<String?>? =
         executeCommand(RedisJsonCommands.mget(path, *keys))
 
     @JvmOverloads
@@ -65,11 +65,11 @@ public class RedisJson(public val serializer: Json = DEFAULT_SERIALIZER) {
         executeCommand(RedisJsonCommands.toggle(key, path))
 
     @JvmOverloads
-    public suspend fun strAppend(key: String, value: String, path: String = ROOT_PATH): List<Long>? =
+    public suspend fun strAppend(key: String, value: String, path: String = ROOT_PATH): List<Long?>? =
         executeCommand(RedisJsonCommands.strAppend(key, value, path))
 
     @JvmOverloads
-    public suspend fun strLen(key: String, path: String = ROOT_PATH): List<Long>? =
+    public suspend fun strLen(key: String, path: String = ROOT_PATH): List<Long?>? =
         executeCommand(RedisJsonCommands.strLen(key, path))
 
     @JvmOverloads
@@ -77,15 +77,15 @@ public class RedisJson(public val serializer: Json = DEFAULT_SERIALIZER) {
         executeCommand(RedisJsonCommands.type(key, path))?.let { JsonType.find(it) ?: error(it) }
 
     @JvmOverloads
-    public suspend fun arrLen(key: String, path: String = ROOT_PATH): List<Long>? =
+    public suspend fun arrLen(key: String, path: String = ROOT_PATH): List<Long?>? =
         executeCommand(RedisJsonCommands.arrLen(key, path))
 
     @JvmOverloads
-    public suspend fun arrPop(key: String, path: String = ROOT_PATH, index: Int? = null): List<String>? =
+    public suspend fun arrPop(key: String, path: String = ROOT_PATH, index: Int? = null): List<String?>? =
         executeCommand(RedisJsonCommands.arrPop(key, path, index))
 
     private suspend fun <T> executeCommand(command: RedisCommand<T>): T? = useConnection {
-        return it.sendCommand(command)
+        return it.executeCommand(command)
     }
 
     private suspend inline fun <T> useConnection(block: (connection: RedisClient) -> T): T =
