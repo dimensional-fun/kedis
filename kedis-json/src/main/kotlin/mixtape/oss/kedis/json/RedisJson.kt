@@ -13,19 +13,6 @@ public class RedisJson(public val serializer: Json = DEFAULT_SERIALIZER) {
             isLenient = true
             ignoreUnknownKeys = true
         }
-
-        public fun isOK(string: String?): Boolean =
-            string == "OK"
-
-        public fun bulkReplyToIntegerList(values: String): List<Int?> {
-            return values
-                .removeSurrounding("[", "]")
-                .split(',')
-                .map { if (it == "null") null else it.toInt() }
-        }
-
-        public fun argsOf(vararg strings: String): Array<ByteArray> =
-            strings.map { it.encodeToByteArray() }.toTypedArray()
     }
 
     private var pool: RedisPool? = null
