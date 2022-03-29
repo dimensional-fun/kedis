@@ -23,7 +23,7 @@ public class RedisPool(public val uri: RedisURI, initialSize: Int = 5) {
     public suspend fun get(): RedisClient {
         var client = withTimeoutOrNull(5_000) {
             semaphore.acquire()
-            clients.removeLast()
+            clients.removeLastOrNull()
         }
 
         if (client == null) {
