@@ -13,7 +13,7 @@ public object RedisProtocolWriter {
             is Long -> writeInteger(value, terminate)
             is Boolean -> writeInteger(if (value) 1 else 0, terminate)
             is Collection<*> -> writeArray(value)
-            is Rawable -> value.raw
+            is Rawable -> value.bytes()
             else -> error("Unable to compose value: $value")
         }
     }
@@ -59,11 +59,11 @@ public object RedisProtocolWriter {
         return args
             .map {
                 when (it) {
-                    is Rawable -> it.raw
+                    is Rawable -> it.bytes()
                     is ByteArray -> it
                     else -> toString(it)?.encodeToByteArray() ?: error("Unable to encode $it to a byte array")
                 }
             }
-            .fold(byteArrayOf()) { a, b -> byteArrayOf(*a, *b) }
+            .fold(byteArrayOf()) { a, b -> a + b }
     }
 }

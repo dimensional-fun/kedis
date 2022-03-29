@@ -1,12 +1,8 @@
 package mixtape.oss.kedis.command
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import mixtape.oss.kedis.exception.RedisProtocolException
-import mixtape.oss.kedis.protocol.RedisData
-import mixtape.oss.kedis.protocol.RedisProtocolReader
-import mixtape.oss.kedis.protocol.RedisType
-import mixtape.oss.kedis.util.into
+import mixtape.oss.kedis.protocol.*
 
 public fun interface RedisTypeReader<T> {
     public companion object {
@@ -20,39 +16,42 @@ public fun interface RedisTypeReader<T> {
             }
 
         public val String: RedisTypeReader<String> = RedisTypeReader(RedisType.SimpleString, RedisType.BulkString) { t, c ->
-            if (t == RedisType.BulkString) {
+            val value = if (t == RedisType.BulkString) {
                 RedisProtocolReader.readBulkStringReply(c)
             } else {
                 RedisProtocolReader.readSimpleStringReply(c)
             }
+
+            value.asText()
         }
 
-        public val StringList: RedisTypeReader<List<String>> = RedisTypeReader(RedisType.Array) { t, c ->
-            RedisProtocolReader.readArray(c)
-                .map { it.into<RedisData.Text>() }
-                .map { it.value }
+        // TODO: maybe make like an inner type for array
+        public val Unknown: RedisTypeReader<RedisData> = RedisTypeReader { t, c ->
+            RedisProtocolReader.read(c)
         }
 
-        public val LongList: RedisTypeReader<List<Long>> = RedisTypeReader(RedisType.Array) { t, c ->
-            RedisProtocolReader.readArray(c)
-                .map { it.into<RedisData.Integer>() }
-                .map { it.value }
+        public val StringList: RedisTypeReader<List<String?>> = RedisTypeReader(RedisType.Array) { t, c ->
+            RedisProtocolReader.readArray(c).value.map { it.asText() }
+        }
+
+        public val LongList: RedisTypeReader<List<Long?>> = RedisTypeReader(RedisType.Array) { t, c ->
+            RedisProtocolReader.readArray(c).value.map { it.asInteger() }
         }
 
         public val SimpleString: RedisTypeReader<String> = RedisTypeReader(RedisType.SimpleString) { _, c ->
-            RedisProtocolReader.readSimpleStringReply(c)
+            RedisProtocolReader.readSimpleStringReply(c).value
         }
 
         public val BulkString: RedisTypeReader<String> = RedisTypeReader(RedisType.BulkString) { _, c ->
-            RedisProtocolReader.readBulkStringReply(c)
+            RedisProtocolReader.readBulkStringReply(c).asText()
         }
 
-        public val Boolean: RedisTypeReader<Boolean> = RedisTypeReader(RedisType.BulkString) { _, c ->
-            RedisProtocolReader.readIntegerReply(c) == 1L
+        public val Boolean: RedisTypeReader<Boolean> = RedisTypeReader(RedisType.Integer) { _, c ->
+            RedisProtocolReader.readIntegerReply(c).value == 1L
         }
 
         public val Long: RedisTypeReader<Long> = RedisTypeReader(RedisType.Integer) { _, c ->
-            RedisProtocolReader.readIntegerReply(c)
+            RedisProtocolReader.readIntegerReply(c).value
         }
     }
 

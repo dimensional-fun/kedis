@@ -1,9 +1,11 @@
 package mixtape.oss.kedis.command
 
-public object RedisCommands {
-    public val ping: RedisCommand<String> = RedisCommand("PING", RedisTypeReader.SimpleString)
+public object RedisCommands : ACLCommands {
+    public fun ping(): RedisCommand<String> =
+        RedisCommand("PING", RedisTypeReader.SimpleString)
 
-    public val info: RedisCommand<String> = RedisCommand("INFO", RedisTypeReader.BulkString)
+    public fun info(): RedisCommand<String> =
+        RedisCommand("INFO", RedisTypeReader.BulkString)
 
     public fun del(vararg keys: String): RedisCommand<Long> =
         RedisCommand("DEL", RedisTypeReader.Long, *keys)

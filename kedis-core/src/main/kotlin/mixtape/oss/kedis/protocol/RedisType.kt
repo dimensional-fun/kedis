@@ -7,8 +7,7 @@ public enum class RedisType(public val char: Char) : Rawable {
     Integer(':'),
     Array('*');
 
-    override val raw: ByteArray
-        get() = byteArrayOf(char.code.toByte())
+    override fun bytes(): ByteArray = byteArrayOf(char.code.toByte())
 
     public companion object {
         public fun find(byte: Byte): RedisType? = values().find { it.char.code.toByte() == byte }

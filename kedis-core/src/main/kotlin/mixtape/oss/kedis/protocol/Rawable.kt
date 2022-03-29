@@ -1,5 +1,11 @@
 package mixtape.oss.kedis.protocol
 
+import io.ktor.utils.io.core.*
+
 public interface Rawable {
-    public val raw: ByteArray
+    public fun bytes(): ByteArray
+
+    public fun packet(): ByteReadPacket {
+        return ByteReadPacket(bytes())
+    }
 }
