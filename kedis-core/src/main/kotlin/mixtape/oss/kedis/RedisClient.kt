@@ -60,14 +60,14 @@ public open class RedisClient(
         when (type) {
             RedisType.SimpleError -> {
                 val message = incoming.readUTF8Line()
-                log.debug { "Received error: $message" }
+                log.trace { "Received error: $message" }
 
                 throw RedisProtocolException(message)
             }
 
             /* read from incoming. */
             else -> {
-                log.debug { "Received type: $type" }
+                log.trace { "Received type: $type" }
 
                 /* read from incoming. */
                 return reader.read(type, this)
@@ -94,7 +94,7 @@ public open class RedisClient(
             }
 
             val payload = command.write(protocol.writer).apply {
-                log.info { "Sending ${command.name} -> ${decodeToString().escaped}" }
+                log.trace { "Sending ${command.name} -> ${decodeToString().escaped}" }
             }
 
             outgoing.writePacket(ByteReadPacket(payload))
@@ -122,7 +122,7 @@ public suspend fun RedisClient(uri: RedisURI, protocol: Protocol = Protocol.RESP
         throw e
     }
 
-    log.info { "Connected to $uri using protocol => $protocol" }
+    log.debug { "Connected to $uri using protocol => $protocol" }
 
     val client = RedisClient(uri, protocol, scope, socket)
     if (protocol != Protocol.RESP2) {

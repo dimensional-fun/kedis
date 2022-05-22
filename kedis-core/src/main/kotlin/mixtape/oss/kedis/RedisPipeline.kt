@@ -34,7 +34,7 @@ public data class RedisPipeline(public val client: RedisClient) {
                 a + b.command.write(client.protocol.writer)
             }
 
-            log.info { "Executing pipeline with ${requests.size} commands -> ${payload.decodeToString().escaped}" }
+            log.trace { "Executing pipeline with ${requests.size} commands -> ${payload.decodeToString().escaped}" }
 
             /* send and read pipeline request */
             client.sendPacket(payload)
