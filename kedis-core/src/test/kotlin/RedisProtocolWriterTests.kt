@@ -1,4 +1,5 @@
 import mixtape.oss.kedis.protocol.RedisProtocolWriter
+import mixtape.oss.kedis.protocol.resp2.Resp2ProtocolWriter
 import org.junit.jupiter.api.Test
 
 class RedisProtocolWriterTests {
@@ -16,6 +17,6 @@ class RedisProtocolWriterTests {
     }
 
     fun compose(value: Any?): String {
-        return RedisProtocolWriter.write(value).decodeToString()
+        return Resp2ProtocolWriter.write(value).decodeToString()
     }
 }

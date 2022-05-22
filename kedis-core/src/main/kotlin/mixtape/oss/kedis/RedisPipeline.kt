@@ -8,6 +8,7 @@ import kotlinx.coroutines.sync.withLock
 import mixtape.oss.kedis.annotations.KedisInternalApi
 import mixtape.oss.kedis.command.RedisCommand
 import mixtape.oss.kedis.exception.RedisProtocolException
+import mixtape.oss.kedis.util.escaped
 
 public data class RedisPipeline(public val client: RedisClient) {
     public val requests: MutableList<Request<*>> = mutableListOf()
@@ -30,8 +31,10 @@ public data class RedisPipeline(public val client: RedisClient) {
 
         client.mutex.withLock {
             val payload = requests.fold(byteArrayOf()) { a, b ->
-                a + b.command.bytes()
+                a + b.command.write(client.protocol.writer)
             }
+
+            log.info { "Executing pipeline with ${requests.size} commands -> ${payload.decodeToString().escaped}" }
 
             /* send and read pipeline request */
             client.sendPacket(payload)
@@ -52,5 +55,5 @@ public data class RedisPipeline(public val client: RedisClient) {
         return requests.toList()
     }
 
-    public data class Request<T>(val command: RedisCommand<T>, internal val response: CompletableDeferred<T?>)
+    public data class Request<T>(val command: RedisCommand<T>, val response: CompletableDeferred<T?>)
 }

@@ -1,12 +1,10 @@
 package mixtape.oss.kedis.protocol
 
-import io.ktor.utils.io.core.*
 import mixtape.oss.kedis.exception.RedisProtocolException
 import mixtape.oss.kedis.util.into
 
-public sealed class RedisData(public val type: RedisType) : Rawable {
-
-    public override fun bytes(): ByteArray {
+public sealed class RedisData : Writable {
+    override fun write(writer: RedisProtocolWriter): ByteArray {
         return byteArrayOf()
     }
 
@@ -14,17 +12,17 @@ public sealed class RedisData(public val type: RedisType) : Rawable {
         return if (this is Null) null else this
     }
 
-    public object Null : RedisData(RedisType.BulkString) {
-        override fun bytes(): ByteArray = RedisProtocolWriter.writeNull()
+    public object Null : RedisData() {
+        override fun write(writer: RedisProtocolWriter): ByteArray = writer.writeNull()
 
         override fun toString(): String = "RedisNull"
     }
 
-    public open class Text(type: RedisType, public val value: String) : RedisData(type) {
-        override fun bytes(): ByteArray {
+    public open class Text(public val type: RedisType, public val value: String) : RedisData() {
+        override fun write(writer: RedisProtocolWriter): ByteArray {
             return when (type) {
-                RedisType.SimpleString -> RedisProtocolWriter.writeSimpleString(value)
-                RedisType.BulkString -> RedisProtocolWriter.writeBulkString(value)
+                RedisType.SimpleString -> writer.writeSimpleString(value)
+                RedisType.BulkString -> writer.writeBulkString(value)
                 else -> error("Invalid text redis type.")
             }
         }
@@ -32,35 +30,39 @@ public sealed class RedisData(public val type: RedisType) : Rawable {
         override fun toString(): String = "RedisText(type=$type, value=$value)"
     }
 
-    public open class Array(public val value: List<RedisData>) : RedisData(RedisType.Array) {
-        override fun bytes(): ByteArray = RedisProtocolWriter.writeArray(value)
+    public open class Array(public val value: List<RedisData>) : RedisData() {
+        override fun write(writer: RedisProtocolWriter): ByteArray =
+            writer.writeArray(value)
 
-        public fun bytes(forceBulkString: Boolean): ByteArray = RedisProtocolWriter.writeArray(value, forceBulkString)
+        public fun write(writer: RedisProtocolWriter, forceBulkString: Boolean): ByteArray =
+            writer.writeArray(value, forceBulkString)
 
         override fun toString(): String = "RedisArray[${value.joinToString(", ")}]"
     }
 
-    public open class Integer(public val value: Long) : RedisData(RedisType.Integer) {
-        override fun bytes(): ByteArray = RedisProtocolWriter.writeInteger(value)
+    public open class Integer(public val value: Long) : RedisData() {
+        override fun write(writer: RedisProtocolWriter): ByteArray = writer.writeInteger(value)
 
         override fun toString(): String = "RedisInteger(value=$value)"
     }
 
-    public open class Error(public val value: String) : RedisData(RedisType.Error) {
-        override fun bytes(): ByteArray = RedisProtocolWriter.encode(RedisType.Error, value)
+    public open class Bool(public val value: Boolean) : RedisData() {
+        override fun write(writer: RedisProtocolWriter): ByteArray = writer.write(value)
+
+        override fun toString(): String = "RedisBool(value=$value)"
+    }
+
+    public open class Error(public val value: String) : RedisData() {
+        override fun write(writer: RedisProtocolWriter): ByteArray = writer.writeSimpleString(value)
 
         override fun toString(): String = "RedisError(value=$value)"
 
-        public fun yeet(): Nothing {
-            throw RedisProtocolException(value)
-        }
+        public fun yeet(): Nothing = throw RedisProtocolException(value)
     }
-
 }
 
-public fun RedisData.asInteger(): Long? {
-    return orNull()?.into<RedisData.Integer>()?.value
-}
+public fun RedisData.asInteger(): Long? = orNull()?.into<RedisData.Integer>()?.value
 
-public fun RedisData.asText(): String? {    return orNull()?.into<RedisData.Text>()?.value
-}
+public fun RedisData.asText(): String? = orNull()?.into<RedisData.Text>()?.value
+
+public fun RedisData.asArray(): List<RedisData>? = orNull()?.into<RedisData.Array>()?.value

@@ -4,5 +4,6 @@
 out/
 bin/
 build/
+dev/
 
 *.env

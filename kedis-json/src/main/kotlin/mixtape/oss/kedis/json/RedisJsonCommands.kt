@@ -1,7 +1,7 @@
 package mixtape.oss.kedis.json
 
 import mixtape.oss.kedis.command.RedisCommand
-import mixtape.oss.kedis.command.RedisTypeReader
+import mixtape.oss.kedis.command.type.RedisTypeReader
 
 public object RedisJsonCommands {
     public fun set(key: String, path: String, value: String): RedisCommand<String> =

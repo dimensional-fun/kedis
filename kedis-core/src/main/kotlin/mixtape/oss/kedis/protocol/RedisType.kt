@@ -1,11 +1,13 @@
 package mixtape.oss.kedis.protocol
 
 public enum class RedisType(public val char: Char) : Rawable {
+    /* Shared types */
     SimpleString('+'),
+    SimpleError('-'),
     BulkString('$'),
-    Error('-'),
     Integer(':'),
-    Array('*');
+    Array('*'),
+    ;
 
     override fun bytes(): ByteArray = byteArrayOf(char.code.toByte())
 

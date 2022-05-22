@@ -1,6 +1,12 @@
-package mixtape.oss.kedis.command
+package mixtape.oss.kedis.command.group
 
-public interface ACLCommands {
+import mixtape.oss.kedis.command.RedisCommand
+import mixtape.oss.kedis.command.type.RedisTypeReader
+
+public interface ServerCommands {
+    public fun info(): RedisCommand<String> =
+        RedisCommand("INFO", RedisTypeReader.BulkString)
+
     public fun <T> acl(command: String, typeReader: RedisTypeReader<T>, vararg args: Any?): RedisCommand<T> =
         RedisCommand("ACL", typeReader, command, *args)
 

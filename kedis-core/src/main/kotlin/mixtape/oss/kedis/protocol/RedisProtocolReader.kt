@@ -3,102 +3,37 @@ package mixtape.oss.kedis.protocol
 import io.ktor.utils.io.*
 import mixtape.oss.kedis.exception.RedisTypeUnknownException
 import mixtape.oss.kedis.exception.notNullable
+import mixtape.oss.kedis.util.removePrefix
 
-public object RedisProtocolReader {
-    public suspend fun read(channel: ByteReadChannel): RedisData {
-        return when (readReplyType(channel)) {
-            RedisType.Integer ->
-                readIntegerReply(channel)
+public interface RedisProtocolReader {
+    public val supports: List<RedisType>
 
-            RedisType.BulkString ->
-                readBulkStringReply(channel)
-
-            RedisType.SimpleString ->
-                readSimpleStringReply(channel)
-
-            RedisType.Array ->
-                readArray(channel)
-
-            RedisType.Error ->
-                readError(channel).yeet()
-        }
-    }
+    public suspend fun read(channel: ByteReadChannel): RedisData
 
     public suspend fun readReplyType(channel: ByteReadChannel): RedisType {
         val byte = channel.readByte()
 
-        return RedisType.find(byte) ?: throw RedisTypeUnknownException()
+        return RedisType.find(byte) ?: throw RedisTypeUnknownException(byte.toInt().toChar())
     }
 
-    public suspend fun readSimpleStringReply(channel: ByteReadChannel): RedisData.Text {
-        val header = notNullable(channel.readUTF8Line()) {
-            "Unable to read simple string reply"
-        }
+    /* shared types */
+    public suspend fun readSimpleStringReply(channel: ByteReadChannel): RedisData.Text
 
-        return RedisData.Text(RedisType.SimpleString, header.removePrefix("+"))
-    }
+    public suspend fun readBulkStringReply(channel: ByteReadChannel): RedisData
 
-    public suspend fun readBulkStringReply(channel: ByteReadChannel): RedisData {
-        val header = notNullable(channel.readUTF8Line()) {
-            "Unable to read header for bulk string reply"
-        }
+    public suspend fun readIntegerReply(channel: ByteReadChannel): RedisData.Integer
 
-        val length = notNullable(header.removePrefix("$").toLongOrNull()) {
-            "Unable to read bulk string reply length"
-        }
-
-        if (length == -1L) {
-            return RedisData.Null
-        }
-
-        val data = channel.readRemaining(length + 2)
-        return RedisData.Text(RedisType.BulkString, data.readText().removeSuffix("\r\n"))
-    }
-
-    public suspend fun readIntegerReply(channel: ByteReadChannel): RedisData.Integer {
-        val header = notNullable(channel.readUTF8Line()) {
-            "Unable to integer reply header"
-        }
-
-        val value = notNullable(header.removePrefix(":").toLongOrNull()) {
-            "Reply was not an integer"
-        }
-
-        return RedisData.Integer(value)
-    }
-
-    public suspend fun readError(channel: ByteReadChannel): RedisData.Error {
-        val message = notNullable(channel.readUTF8Line()) {
-            "Unable to read error reply"
-        }
-
-        return RedisData.Error(message)
-    }
+    public suspend fun readSimpleError(channel: ByteReadChannel): RedisData.Error
 
     public suspend fun readArray(channel: ByteReadChannel): RedisData.Array {
         val header = notNullable(channel.readUTF8Line()) {
             "Unable to read list reply header"
         }
 
-        val size = notNullable(header.removePrefix("*").toIntOrNull()) {
+        val size = notNullable(header.removePrefix(RedisType.Array).toIntOrNull()) {
             "Array size was not an integer"
         }
 
-        val elements = List(size) {
-            when (readReplyType(channel)) {
-                RedisType.BulkString -> readBulkStringReply(channel)
-                RedisType.SimpleString -> readSimpleStringReply(channel)
-                RedisType.Integer -> readIntegerReply(channel)
-                RedisType.Array -> readArray(channel)
-                RedisType.Error -> readError(channel)
-            }
-        }
-
-        val errors = elements.filterIsInstance<RedisData.Error>()
-        if (errors.isNotEmpty()) {
-            errors.first().yeet()
-        }
-
-        return RedisData.Array(elements)
+        return RedisData.Array(List(size) { read(channel) })
     }
 }

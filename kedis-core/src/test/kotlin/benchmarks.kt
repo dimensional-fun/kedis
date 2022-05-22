@@ -1,5 +1,6 @@
 import mixtape.oss.kedis.RedisClient
-import mixtape.oss.kedis.command.RedisCommands
+import mixtape.oss.kedis.command.group.GenericCommands
+import mixtape.oss.kedis.command.group.RedisCommands
 import mixtape.oss.kedis.pipelined
 import redis.clients.jedis.*
 import kotlin.system.measureTimeMillis

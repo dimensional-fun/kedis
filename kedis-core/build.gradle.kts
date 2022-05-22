@@ -12,10 +12,10 @@ tasks.test {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("io.ktor:ktor-network:1.6.8")
     implementation("io.github.microutils:kotlin-logging:2.1.21")
+    implementation("io.arrow-kt:arrow-core:1.0.6-alpha.1")
 
     // tests
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0")
