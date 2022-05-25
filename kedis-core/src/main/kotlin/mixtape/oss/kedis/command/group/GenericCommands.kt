@@ -106,10 +106,6 @@ public interface GenericCommands {
         get: Boolean = false,
         expiry: KeyExpiry? = null
     ): RedisCommand<Any?> {
-        val args = ArrayList<Any>(4)
-        args.add(key)
-        args.add(value)
-
         val options = ArrayList<RedisCommand.Option>()
         if (existenceModifier != null) {
             options.add(RedisCommand.Option(existenceModifier.name, emptyList()))
@@ -131,7 +127,7 @@ public interface GenericCommands {
             }
         }
 
-        return RedisCommand("SET", reader, args, options)
+        return RedisCommand("SET", reader, listOf(key, value), options)
     }
 
     public fun touch(key: String, vararg keys: String): RedisCommand<Long> =
