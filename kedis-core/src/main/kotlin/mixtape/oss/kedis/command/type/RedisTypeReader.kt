@@ -55,7 +55,7 @@ public fun interface RedisTypeReader<T> {
             c.protocol.reader.readArray(c.incoming)
         }
 
-        public val StringList: RedisTypeReader<List<String?>> = RedisTypeReader(RedisType.Array) { t, c ->
+        public val StringList: RedisTypeReader<List<String?>> = RedisTypeReader(RedisType.Array) { _, c ->
             c.protocol.reader.readArray(c.incoming).value.map { it.asText() }
         }
 

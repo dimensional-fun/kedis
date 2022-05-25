@@ -1,8 +1,11 @@
 package mixtape.oss.kedis.command.group
 
-import mixtape.oss.kedis.command.type.ExpireOption
 import mixtape.oss.kedis.command.RedisCommand
+import mixtape.oss.kedis.command.type.ExistenceModifier
+import mixtape.oss.kedis.command.type.ExpireOption
+import mixtape.oss.kedis.command.type.KeyExpiry
 import mixtape.oss.kedis.command.type.RedisTypeReader
+import mixtape.oss.kedis.protocol.RedisType
 
 public interface GenericCommands {
     public companion object {
@@ -95,6 +98,41 @@ public interface GenericCommands {
         RedisCommand("RENAMENX", RedisTypeReader.SimpleString, key, ttl, serializedValue)*/
 
     /*public fun scan(cursor: Long, )*/
+
+    public fun set(
+        key: String,
+        value: String,
+        existenceModifier: ExistenceModifier? = null,
+        get: Boolean = false,
+        expiry: KeyExpiry? = null
+    ): RedisCommand<Any?> {
+        val args = ArrayList<Any>(4)
+        args.add(key)
+        args.add(value)
+
+        val options = ArrayList<RedisCommand.Option>()
+        if (existenceModifier != null) {
+            options.add(RedisCommand.Option(existenceModifier.name, emptyList()))
+        }
+
+        if (get) {
+            options.add(RedisCommand.Option("GET", emptyList()))
+        }
+
+        if (expiry != null) {
+            options.add(expiry.serialize())
+        }
+
+        val reader = RedisTypeReader<Any?>(RedisType.SimpleString, RedisType.BulkString) { type, client ->
+            return@RedisTypeReader when (type) {
+                RedisType.BulkString -> RedisTypeReader.BulkString.read(type, client)
+                RedisType.SimpleString -> true
+                else -> null
+            }
+        }
+
+        return RedisCommand("SET", reader, args, options)
+    }
 
     public fun touch(key: String, vararg keys: String): RedisCommand<Long> =
         RedisCommand("TOUCH", RedisTypeReader.Long, key, *keys)
