@@ -84,5 +84,4 @@ public interface ConnectionManagementCommands {
 
     public fun select(index: Long): RedisCommand<String> =
         RedisCommand("SELECT", RedisTypeReader.SimpleString)
-
 }

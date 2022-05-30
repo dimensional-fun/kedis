@@ -18,9 +18,15 @@ public suspend fun RedisClient.set(
     key: String,
     value: String,
     existenceModifier: ExistenceModifier? = null,
-    get: Boolean = false,
     expiry: KeyExpiry? = null
-): Any? = executeCommand(RedisCommands.set(key, value, existenceModifier, get, expiry))
+): Boolean = executeCommand(RedisCommands.set(key, value, existenceModifier, expiry)) ?: false
+
+public suspend fun RedisClient.setGet(
+    key: String,
+    value: String,
+    existenceModifier: ExistenceModifier? = null,
+    expiry: KeyExpiry? = null
+): String? = executeCommand(RedisCommands.setGet(key, value, existenceModifier, expiry))
 
 public suspend fun RedisClient.del(keys: List<String>): Long? =
     executeCommand(RedisCommand("DEL", RedisTypeReader.Long, keys))

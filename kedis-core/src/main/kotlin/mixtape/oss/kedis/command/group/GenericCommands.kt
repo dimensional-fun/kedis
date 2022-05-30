@@ -19,7 +19,7 @@ public interface GenericCommands {
     public fun del(key: String, vararg keys: String): RedisCommand<Long> =
         RedisCommand("DEL", RedisTypeReader.Long, key, *keys)
 
-    public fun del(keys: List<String>): RedisCommand<Long> =
+    public fun del(keys: Collection<String>): RedisCommand<Long> =
         RedisCommand("DEL", RedisTypeReader.Long, *keys.toTypedArray())
 
     public fun dump(key: String): RedisCommand<String> =
@@ -99,7 +99,25 @@ public interface GenericCommands {
 
     /*public fun scan(cursor: Long, )*/
 
+    @Suppress("UNCHECKED_CAST")
     public fun set(
+        key: String,
+        value: String,
+        existenceModifier: ExistenceModifier? = null,
+        expiry: KeyExpiry? = null
+    ): RedisCommand<Boolean> =
+        set(key, value, existenceModifier, false, expiry) as RedisCommand<Boolean>
+
+    @Suppress("UNCHECKED_CAST")
+    public fun setGet(
+        key: String,
+        value: String,
+        existenceModifier: ExistenceModifier? = null,
+        expiry: KeyExpiry? = null
+    ): RedisCommand<String> =
+        set(key, value, existenceModifier, true, expiry) as RedisCommand<String>
+
+    private fun set(
         key: String,
         value: String,
         existenceModifier: ExistenceModifier? = null,

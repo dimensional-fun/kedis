@@ -1,5 +1,4 @@
 import mixtape.oss.kedis.RedisClient
-import mixtape.oss.kedis.command.group.GenericCommands
 import mixtape.oss.kedis.command.group.RedisCommands
 import mixtape.oss.kedis.pipelined
 import redis.clients.jedis.*
@@ -48,5 +47,6 @@ inline fun measure(name: String, iterations: Int, block: () -> Unit) {
         --------------------------------------------------------------------
         $name, ${results.size} iterations
         Avg: ${results.average()}ms Min: ${results.minOrNull()}ms, Max: ${results.maxOrNull()}ms
-        """.trimIndent())
+        """.trimIndent()
+    )
 }

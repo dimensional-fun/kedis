@@ -1,4 +1,4 @@
-import mixtape.oss.kedis.protocol.RedisProtocolWriter
+
 import mixtape.oss.kedis.protocol.resp2.Resp2ProtocolWriter
 import org.junit.jupiter.api.Test
 

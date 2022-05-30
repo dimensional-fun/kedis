@@ -2,7 +2,7 @@
 
 package mixtape.oss.kedis
 
-import  io.ktor.network.selector.*
+import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -73,7 +73,6 @@ public open class RedisClient(
                 return reader.read(type, this)
             }
         }
-
     }
 
     public suspend fun close() {
@@ -89,7 +88,7 @@ public open class RedisClient(
 
     public suspend fun <T> executeCommand(command: RedisCommand<T>): T? {
         mutex.withLock {
-            require (!socket.isClosed) {
+            require(!socket.isClosed) {
                 "The socket for this client has been closed."
             }
 

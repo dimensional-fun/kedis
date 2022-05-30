@@ -1,9 +1,9 @@
 package mixtape.oss.kedis.command
 
 import mixtape.oss.kedis.command.type.RedisTypeReader
-import mixtape.oss.kedis.protocol.Writable
 import mixtape.oss.kedis.protocol.RedisProtocolCommand
 import mixtape.oss.kedis.protocol.RedisProtocolWriter
+import mixtape.oss.kedis.protocol.Writable
 import mixtape.oss.kedis.util.CRLF
 
 public data class RedisCommand<T>(

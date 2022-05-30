@@ -1,3 +1,3 @@
 package mixtape.oss.kedis.command.group
 
-public object RedisCommands : BitmapCommands, ConnectionManagementCommands, GenericCommands, ServerCommands
+public object RedisCommands : BitmapCommands, ConnectionManagementCommands, GenericCommands, PubSubCommands, ServerCommands
