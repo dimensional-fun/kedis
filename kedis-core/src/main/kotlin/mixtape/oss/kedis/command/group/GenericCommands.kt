@@ -29,16 +29,16 @@ public interface GenericCommands {
         RedisCommand("EXISTS", RedisTypeReader.Boolean, key)
 
     public fun expire(key: String, seconds: Long): RedisCommand<Long> =
-        RedisCommand("EXPIRE", RedisTypeReader.Long, key, seconds)
+        RedisCommand("EXPIRE", RedisTypeReader.Long, key, seconds.toString())
 
     public fun expire(key: String, seconds: Long, expiry: ExpireOption): RedisCommand<Long> =
-        RedisCommand("EXPIRE", RedisTypeReader.Long, key, seconds, expiry)
+        RedisCommand("EXPIRE", RedisTypeReader.Long, key, seconds.toString(), expiry)
 
     public fun expireAt(key: String, timestampSeconds: Long): RedisCommand<Long> =
-        RedisCommand("EXPIREAT", RedisTypeReader.Long, key, timestampSeconds)
+        RedisCommand("EXPIREAT", RedisTypeReader.Long, key, timestampSeconds.toString())
 
     public fun expireAt(key: String, timestampSeconds: Long, expiry: ExpireOption): RedisCommand<Long> =
-        RedisCommand("EXPIREAT", RedisTypeReader.Long, key, timestampSeconds, expiry)
+        RedisCommand("EXPIREAT", RedisTypeReader.Long, key, timestampSeconds.toString(), expiry)
 
     public fun expireTime(key: String): RedisCommand<Long> =
         RedisCommand("EXPIRETIME", RedisTypeReader.Long, key)
