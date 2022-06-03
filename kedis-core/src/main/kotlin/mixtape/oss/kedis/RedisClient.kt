@@ -53,8 +53,9 @@ public open class RedisClient(
 
     public suspend fun <T> readReply(reader: RedisTypeReader<T>): T? {
         /* validate the type */
-        val type = RedisType.find(incoming.readByte())
-            ?: throw RedisTypeUnknownException()
+        val char = incoming.readByte()
+        val type = RedisType.find(char)
+            ?: throw RedisTypeUnknownException(char.toInt().toChar())
 
         /* check if an error was returned. */
         when (type) {
