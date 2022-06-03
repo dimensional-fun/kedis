@@ -7,6 +7,17 @@ import mixtape.oss.kedis.command.type.KeyExpiry
 import mixtape.oss.kedis.command.type.RedisTypeReader
 import mixtape.oss.kedis.protocol.RedisType
 
+private val setReader = RedisTypeReader<Any?>(RedisType.SimpleString, RedisType.BulkString) { type, client ->
+    return@RedisTypeReader when (type) {
+        RedisType.BulkString -> RedisTypeReader.BulkString.read(type, client)
+        RedisType.SimpleString -> {
+            RedisTypeReader.SimpleString.read(type, client)
+            true
+        }
+        else -> throw IllegalStateException()
+    }
+}
+
 public interface GenericCommands {
     public companion object {
         public const val NO_KEY_EXPIRY: Long = -1
@@ -137,18 +148,7 @@ public interface GenericCommands {
             options.add(expiry.serialize())
         }
 
-        val reader = RedisTypeReader<Any?>(RedisType.SimpleString, RedisType.BulkString) { type, client ->
-            return@RedisTypeReader when (type) {
-                RedisType.BulkString -> RedisTypeReader.BulkString.read(type, client)
-                RedisType.SimpleString -> {
-                    RedisTypeReader.SimpleString.read(type, client)
-                    true
-                }
-                else -> throw IllegalStateException()
-            }
-        }
-
-        return RedisCommand("SET", reader, listOf(key, value), options)
+        return RedisCommand("SET", setReader, listOf(key, value), options)
     }
 
     public fun touch(key: String, vararg keys: String): RedisCommand<Long> =
