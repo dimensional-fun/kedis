@@ -140,8 +140,11 @@ public interface GenericCommands {
         val reader = RedisTypeReader<Any?>(RedisType.SimpleString, RedisType.BulkString) { type, client ->
             return@RedisTypeReader when (type) {
                 RedisType.BulkString -> RedisTypeReader.BulkString.read(type, client)
-                RedisType.SimpleString -> true
-                else -> null
+                RedisType.SimpleString -> {
+                    RedisTypeReader.SimpleString.read(type, client)
+                    true
+                }
+                else -> throw IllegalStateException()
             }
         }
 
