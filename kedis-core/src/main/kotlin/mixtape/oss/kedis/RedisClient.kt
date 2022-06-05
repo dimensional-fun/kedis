@@ -80,7 +80,7 @@ public open class RedisClient(
     }
 
     public suspend fun close() {
-        if (closing) return
+        if (isClosed) return
         synchronized(this) {
             if (closing) return
             closing = true

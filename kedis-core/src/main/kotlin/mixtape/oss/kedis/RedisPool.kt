@@ -89,6 +89,13 @@ public class RedisPool internal constructor(
 }
 
 public suspend fun RedisPool(
+    uri: String,
+    initialSize: Int = 5,
+    maxSize: Int = 10,
+    maxWaitTime: Long = 5000
+): RedisPool = RedisPool(RedisURI(uri), initialSize, maxSize, maxWaitTime)
+
+public suspend fun RedisPool(
     uri: RedisURI,
     initialSize: Int = 5,
     maxSize: Int = 10,

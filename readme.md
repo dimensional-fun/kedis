@@ -49,8 +49,16 @@ val client = RedisClient("redis://127.0.0.1")
 ```
 2. Using a `RedisPool`:
 ```kt
-val pool = RedisPool("redis://127.0.0.1", initialSize = 5)
-val client: RedisClient = pool.get()
+val pool = RedisPool(
+    uri = "redis://127.0.0.1",
+    initialSize = 5,
+    maxSize = 10,
+    maxWaitTime = 5000
+)
+
+pool.use { redis: RedisClient ->
+    // do stuff with the RedisClient
+}
 ```
 
 ---
