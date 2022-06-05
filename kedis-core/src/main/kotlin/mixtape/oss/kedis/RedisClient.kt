@@ -39,8 +39,11 @@ public open class RedisClient(
     @KedisInternalApi
     public val outgoing: ByteWriteChannel = socket.openWriteChannel()
 
+    @Volatile
+    private var closing = false
+
     public val isClosed: Boolean
-        get() = !scope.isActive || socket.isClosed
+        get() = closing || !scope.isActive || socket.isClosed
 
     public suspend fun sendPacket(bytes: ByteArray) {
         sendPacket(ByteReadPacket(bytes))
@@ -77,6 +80,12 @@ public open class RedisClient(
     }
 
     public suspend fun close() {
+        if (closing) return
+        synchronized(this) {
+            if (closing) return
+            closing = true
+        }
+
         try {
             quit()
             socket.dispose()
