@@ -3,14 +3,30 @@ package mixtape.oss.kedis.util
 import mixtape.oss.kedis.RedisAuth
 import mixtape.oss.kedis.RedisClient
 import mixtape.oss.kedis.command.RedisCommand
-import mixtape.oss.kedis.command.type.RedisTypeReader
 import mixtape.oss.kedis.command.group.RedisCommands
+import mixtape.oss.kedis.command.type.ExistenceModifier
+import mixtape.oss.kedis.command.type.KeyExpiry
+import mixtape.oss.kedis.command.type.RedisTypeReader
 
 public suspend fun RedisClient.ping(): String? =
     executeCommand(RedisCommands.ping())
 
 public suspend fun RedisClient.get(key: String): String? =
     executeCommand(RedisCommand("GET", RedisTypeReader.String, key))
+
+public suspend fun RedisClient.set(
+    key: String,
+    value: String,
+    existenceModifier: ExistenceModifier? = null,
+    expiry: KeyExpiry? = null
+): Boolean = executeCommand(RedisCommands.set(key, value, existenceModifier, expiry)) ?: false
+
+public suspend fun RedisClient.setGet(
+    key: String,
+    value: String,
+    existenceModifier: ExistenceModifier? = null,
+    expiry: KeyExpiry? = null
+): String? = executeCommand(RedisCommands.setGet(key, value, existenceModifier, expiry))
 
 public suspend fun RedisClient.del(keys: List<String>): Long? =
     executeCommand(RedisCommand("DEL", RedisTypeReader.Long, keys))

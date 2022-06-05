@@ -9,11 +9,13 @@ import mixtape.oss.kedis.util.removePrefix
 
 public object Resp2ProtocolReader : RedisProtocolReader {
     override val supports: List<RedisType>
-        get() = listOf(RedisType.Integer,
+        get() = listOf(
+            RedisType.Integer,
             RedisType.BulkString,
             RedisType.SimpleString,
             RedisType.Array,
-            RedisType.SimpleError)
+            RedisType.SimpleError
+        )
 
     override suspend fun read(channel: ByteReadChannel): RedisData {
         return when (val type = readReplyType(channel)) {
@@ -22,7 +24,6 @@ public object Resp2ProtocolReader : RedisProtocolReader {
             RedisType.SimpleString -> readSimpleStringReply(channel)
             RedisType.Array -> readArray(channel)
             RedisType.SimpleError -> readSimpleError(channel).yeet()
-            else -> error("Redis type: ${type.name} is not supported by this protocol")
         }
     }
 
@@ -47,7 +48,7 @@ public object Resp2ProtocolReader : RedisProtocolReader {
             return RedisData.Null
         }
 
-        val packet = channel.readRemaining(length - 2)
+        val packet = channel.readRemaining(length)
         channel.discard(2) // discarding CRLF
 
         return RedisData.Text(RedisType.BulkString, packet.readText())
@@ -73,4 +74,3 @@ public object Resp2ProtocolReader : RedisProtocolReader {
         return RedisData.Error(message)
     }
 }
-

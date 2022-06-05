@@ -1,6 +1,6 @@
 package mixtape.oss.kedis
 
-import io.ktor.util.network.*
+import io.ktor.network.sockets.*
 import java.net.URI
 
 public class RedisURI(uri: URI) {
@@ -8,7 +8,7 @@ public class RedisURI(uri: URI) {
 
     public val auth: RedisAuth?
 
-    public val address: NetworkAddress
+    public val address: InetSocketAddress
 
     public val database: Int
 
@@ -23,7 +23,7 @@ public class RedisURI(uri: URI) {
         }
 
         /* address */
-        address = NetworkAddress(uri.host ?: "127.0.0.1", uri.port.takeUnless { it == -1 } ?: 6379)
+        address = InetSocketAddress(uri.host ?: "127.0.0.1", uri.port.takeUnless { it == -1 } ?: 6379)
 
         /* database */
         database = uri.path?.removePrefix("/")?.toIntOrNull() ?: 0

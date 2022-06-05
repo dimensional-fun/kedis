@@ -26,10 +26,10 @@ public object RedisJsonCommands {
         RedisCommand(RedisJsonCommand.CLEAR, RedisTypeReader.Long, key, path)
 
     public fun incrBy(key: String, path: String, by: Int): RedisCommand<String> =
-        RedisCommand(RedisJsonCommand.NUM_INCR_BY, RedisTypeReader.String, key, path, by)
+        RedisCommand(RedisJsonCommand.NUM_INCR_BY, RedisTypeReader.String, key, path, by.toString())
 
     public fun multBy(key: String, path: String, by: Int): RedisCommand<String> =
-        RedisCommand(RedisJsonCommand.NUM_MULT_BY, RedisTypeReader.String, key, path, by)
+        RedisCommand(RedisJsonCommand.NUM_MULT_BY, RedisTypeReader.String, key, path, by.toString())
 
     public fun toggle(key: String, path: String): RedisCommand<String> =
         RedisCommand(RedisJsonCommand.TOGGLE, RedisTypeReader.String, key, path)

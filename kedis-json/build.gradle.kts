@@ -8,7 +8,6 @@ kotlin {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-
     implementation(project(":kedis-core"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
 }

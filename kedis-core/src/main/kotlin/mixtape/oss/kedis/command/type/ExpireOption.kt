@@ -7,12 +7,12 @@ import mixtape.oss.kedis.protocol.Rawable
  */
 public enum class ExpireOption : Rawable {
     /**
-     * NX – Set expiry only when the key has no expiry
+     * Set expiry only when the key has no expiry
      */
     NX,
 
     /**
-     * XX – Set expiry only when the key has an existing expiry
+     * Set expiry only when the key has an existing expiry
      */
     XX,
 
@@ -26,7 +26,5 @@ public enum class ExpireOption : Rawable {
      */
     LT;
 
-    override fun bytes(): ByteArray {
-        return name.encodeToByteArray()
-    }
+    override fun bytes(): ByteArray = name.encodeToByteArray()
 }

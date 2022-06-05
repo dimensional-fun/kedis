@@ -1,8 +1,8 @@
 package mixtape.oss.kedis.command.group
 
-import mixtape.oss.kedis.command.type.BitOperation
-import mixtape.oss.kedis.command.type.BitIndex
 import mixtape.oss.kedis.command.RedisCommand
+import mixtape.oss.kedis.command.type.BitIndex
+import mixtape.oss.kedis.command.type.BitOperation
 import mixtape.oss.kedis.command.type.RedisTypeReader
 
 public interface BitmapCommands {
@@ -41,5 +41,4 @@ public interface BitmapCommands {
 
     public fun getbit(key: String, offset: Long, value: Long): RedisCommand<Long> =
         RedisCommand("SETBIT", RedisTypeReader.Long, key, offset, value)
-
 }

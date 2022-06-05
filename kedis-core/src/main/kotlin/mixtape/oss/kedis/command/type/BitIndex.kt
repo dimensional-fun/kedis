@@ -1,9 +1,9 @@
-package mixtape.oss.kedis.command.type;
+package mixtape.oss.kedis.command.type
 
 import mixtape.oss.kedis.protocol.Rawable
 
 public enum class BitIndex : Rawable {
-        BYTE, BIT;
+    BYTE, BIT;
 
-        override fun bytes(): ByteArray = name.encodeToByteArray()
-    }
+    override fun bytes(): ByteArray = name.encodeToByteArray()
+}

@@ -2,7 +2,7 @@
 
 package mixtape.oss.kedis
 
-import  io.ktor.network.selector.*
+import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -53,8 +53,9 @@ public open class RedisClient(
 
     public suspend fun <T> readReply(reader: RedisTypeReader<T>): T? {
         /* validate the type */
-        val type = RedisType.find(incoming.readByte())
-            ?: throw RedisTypeUnknownException()
+        val char = incoming.readByte()
+        val type = RedisType.find(char)
+            ?: throw RedisTypeUnknownException(char.toInt().toChar())
 
         /* check if an error was returned. */
         when (type) {
@@ -73,7 +74,6 @@ public open class RedisClient(
                 return reader.read(type, this)
             }
         }
-
     }
 
     public suspend fun close() {
@@ -89,7 +89,7 @@ public open class RedisClient(
 
     public suspend fun <T> executeCommand(command: RedisCommand<T>): T? {
         mutex.withLock {
-            require (!socket.isClosed) {
+            require(!socket.isClosed) {
                 "The socket for this client has been closed."
             }
 

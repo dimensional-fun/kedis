@@ -1,8 +1,22 @@
 package mixtape.oss.kedis.command.group
 
-import mixtape.oss.kedis.command.type.ExpireOption
 import mixtape.oss.kedis.command.RedisCommand
+import mixtape.oss.kedis.command.type.ExistenceModifier
+import mixtape.oss.kedis.command.type.ExpireOption
+import mixtape.oss.kedis.command.type.KeyExpiry
 import mixtape.oss.kedis.command.type.RedisTypeReader
+import mixtape.oss.kedis.protocol.RedisType
+
+private val setReader = RedisTypeReader<Any?>(RedisType.SimpleString, RedisType.BulkString) { type, client ->
+    return@RedisTypeReader when (type) {
+        RedisType.BulkString -> RedisTypeReader.BulkString.read(type, client)
+        RedisType.SimpleString -> {
+            RedisTypeReader.SimpleString.read(type, client)
+            true
+        }
+        else -> throw IllegalStateException()
+    }
+}
 
 public interface GenericCommands {
     public companion object {
@@ -16,7 +30,7 @@ public interface GenericCommands {
     public fun del(key: String, vararg keys: String): RedisCommand<Long> =
         RedisCommand("DEL", RedisTypeReader.Long, key, *keys)
 
-    public fun del(keys: List<String>): RedisCommand<Long> =
+    public fun del(keys: Collection<String>): RedisCommand<Long> =
         RedisCommand("DEL", RedisTypeReader.Long, *keys.toTypedArray())
 
     public fun dump(key: String): RedisCommand<String> =
@@ -26,16 +40,16 @@ public interface GenericCommands {
         RedisCommand("EXISTS", RedisTypeReader.Boolean, key)
 
     public fun expire(key: String, seconds: Long): RedisCommand<Long> =
-        RedisCommand("EXPIRE", RedisTypeReader.Long, key, seconds)
+        RedisCommand("EXPIRE", RedisTypeReader.Long, key, seconds.toString())
 
     public fun expire(key: String, seconds: Long, expiry: ExpireOption): RedisCommand<Long> =
-        RedisCommand("EXPIRE", RedisTypeReader.Long, key, seconds, expiry)
+        RedisCommand("EXPIRE", RedisTypeReader.Long, key, seconds.toString(), expiry)
 
     public fun expireAt(key: String, timestampSeconds: Long): RedisCommand<Long> =
-        RedisCommand("EXPIREAT", RedisTypeReader.Long, key, timestampSeconds)
+        RedisCommand("EXPIREAT", RedisTypeReader.Long, key, timestampSeconds.toString())
 
     public fun expireAt(key: String, timestampSeconds: Long, expiry: ExpireOption): RedisCommand<Long> =
-        RedisCommand("EXPIREAT", RedisTypeReader.Long, key, timestampSeconds, expiry)
+        RedisCommand("EXPIREAT", RedisTypeReader.Long, key, timestampSeconds.toString(), expiry)
 
     public fun expireTime(key: String): RedisCommand<Long> =
         RedisCommand("EXPIRETIME", RedisTypeReader.Long, key)
@@ -95,6 +109,47 @@ public interface GenericCommands {
         RedisCommand("RENAMENX", RedisTypeReader.SimpleString, key, ttl, serializedValue)*/
 
     /*public fun scan(cursor: Long, )*/
+
+    @Suppress("UNCHECKED_CAST")
+    public fun set(
+        key: String,
+        value: String,
+        existenceModifier: ExistenceModifier? = null,
+        expiry: KeyExpiry? = null
+    ): RedisCommand<Boolean> =
+        set(key, value, existenceModifier, false, expiry) as RedisCommand<Boolean>
+
+    @Suppress("UNCHECKED_CAST")
+    public fun setGet(
+        key: String,
+        value: String,
+        existenceModifier: ExistenceModifier? = null,
+        expiry: KeyExpiry? = null
+    ): RedisCommand<String> =
+        set(key, value, existenceModifier, true, expiry) as RedisCommand<String>
+
+    private fun set(
+        key: String,
+        value: String,
+        existenceModifier: ExistenceModifier? = null,
+        get: Boolean = false,
+        expiry: KeyExpiry? = null
+    ): RedisCommand<Any?> {
+        val options = ArrayList<RedisCommand.Option>()
+        if (existenceModifier != null) {
+            options.add(RedisCommand.Option(existenceModifier.name, emptyList()))
+        }
+
+        if (get) {
+            options.add(RedisCommand.Option("GET", emptyList()))
+        }
+
+        if (expiry != null) {
+            options.add(expiry.serialize())
+        }
+
+        return RedisCommand("SET", setReader, listOf(key, value), options)
+    }
 
     public fun touch(key: String, vararg keys: String): RedisCommand<Long> =
         RedisCommand("TOUCH", RedisTypeReader.Long, key, *keys)

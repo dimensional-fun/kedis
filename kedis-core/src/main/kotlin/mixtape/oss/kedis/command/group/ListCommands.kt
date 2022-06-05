@@ -1,7 +1,7 @@
 package mixtape.oss.kedis.command.group
 
-import mixtape.oss.kedis.command.type.Position
 import mixtape.oss.kedis.command.RedisCommand
+import mixtape.oss.kedis.command.type.Position
 import mixtape.oss.kedis.command.type.RedisTypeReader
 import mixtape.oss.kedis.command.type.Where
 import mixtape.oss.kedis.util.doIf
