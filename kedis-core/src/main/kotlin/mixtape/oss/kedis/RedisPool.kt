@@ -1,38 +1,48 @@
 package mixtape.oss.kedis
 
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-public class RedisPool(public val uri: RedisURI, initialSize: Int = 5) {
-    public constructor(uri: String, initialSize: Int = 5) : this(RedisURI(uri), initialSize)
+public class RedisPool internal constructor(
+    public val uri: RedisURI,
+    private val maxSize: Int,
+    private val maxWaitTime: Long
+) {
 
-    private var semaphore: Semaphore = Semaphore(initialSize)
+    internal val clients = ConcurrentHashMap.newKeySet<RedisClient>(maxSize)
 
-    private val usedClients: MutableList<RedisClient> = mutableListOf()
+    private val channel = Channel<RedisClient>(Channel.UNLIMITED)
+    private val mutex = Mutex()
 
-    private val clients: MutableList<RedisClient> = MutableList(initialSize) {
-        runBlocking { RedisClient(uri) }
+    @Volatile
+    private var closed = false
+
+    private fun checkClosed() {
+        check(!closed) { "RedisPool is closed" }
     }
 
     public val size: Int
-        get() = usedClients.size + clients.size
+        get() = clients.size
 
     public suspend fun get(): RedisClient {
-        var client = withTimeoutOrNull(5_000) {
-            semaphore.acquire()
-            clients.removeLastOrNull()
-        }
+        checkClosed()
 
-        if (client == null) {
+        mutex.withLock {
+            var client = withTimeoutOrNull(maxWaitTime) {
+                channel.receive()
+            }
+
+            if (client != null) return client
+
             client = RedisClient(uri)
-            semaphore = Semaphore(size + 1, size - semaphore.availablePermits)
+            clients.add(client)
+            return client
         }
-
-        usedClients.add(client)
-        return client
     }
 
     public suspend inline fun <T> use(block: (RedisClient) -> T): T {
@@ -48,23 +58,54 @@ public class RedisPool(public val uri: RedisURI, initialSize: Int = 5) {
         }
     }
 
-    public fun release(client: RedisClient): Boolean {
-        if (usedClients.remove(client)) {
-            return false
+    public suspend fun release(client: RedisClient) {
+        checkClosed()
+        require(clients.contains(client))
+
+        if (clients.size > maxSize) {
+            clients.remove(client)
+            client.close()
+        } else {
+            channel.trySend(client)
         }
-
-        clients.add(client)
-        semaphore.release()
-
-        return true
     }
 
     public suspend fun close() {
-        usedClients.forEach(::release)
-        for (client in clients) {
-            client.close()
+        if (this.closed) return
+
+        synchronized(this) {
+            if (this.closed) return
+            this.closed = true
         }
 
-        clients.clear()
+        mutex.withLock {
+            while (true) {
+                channel.tryReceive().getOrNull()?.close() ?: break
+            }
+
+            channel.close()
+        }
     }
+}
+
+public suspend fun RedisPool(
+    uri: RedisURI,
+    initialSize: Int = 5,
+    maxSize: Int = 10,
+    maxWaitTime: Long = 5000
+): RedisPool {
+    require(initialSize > 0)
+    require(initialSize <= maxSize) { "Initial size cannot be bigger than max size" }
+    require(maxSize > 0)
+    require(maxWaitTime > 0)
+
+    val pool = RedisPool(uri, maxSize, maxWaitTime)
+
+    repeat(initialSize) {
+        val client = RedisClient(uri)
+        pool.clients.add(client)
+        pool.release(client)
+    }
+
+    return pool
 }
