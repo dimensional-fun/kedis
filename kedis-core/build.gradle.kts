@@ -1,27 +1,35 @@
 plugins {
-    kotlin("jvm")
+    kotlin("multiplatform")
 }
 
 kotlin {
     explicitApi()
-}
 
-tasks.test {
-    useJUnitPlatform()
-}
+    jvm()
 
-dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-    implementation("io.ktor:ktor-network:2.0.1")
-    implementation("io.github.microutils:kotlin-logging:2.1.21")
-    implementation("io.arrow-kt:arrow-core:1.1.2")
+    linuxX64()
 
-    // tests
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testImplementation("redis.clients:jedis:4.2.3")
+    sourceSets["commonMain"].dependencies {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.0")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-    testRuntimeOnly("org.slf4j:slf4j-simple:1.7.36")
+        implementation("io.ktor:ktor-network:2.2.2") // raw sockets
+        implementation("io.ktor:ktor-http:2.2.2")    // url class
+
+        implementation("naibu.stdlib:naibu-core:1.0-RC.8")
+
+        implementation("io.github.microutils:kotlin-logging:3.0.4")
+    }
+
+    sourceSets["commonTest"].dependencies {
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
+    }
+
+    sourceSets["jvmTest"].dependencies {
+        implementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+        implementation("redis.clients:jedis:4.3.1")
+
+        runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+        runtimeOnly("org.slf4j:slf4j-simple:2.0.5")
+    }
 }

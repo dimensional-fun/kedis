@@ -4,19 +4,24 @@ plugins {
     idea
     `maven-publish`
 
-    kotlin("jvm") version "1.6.10" apply false
+    kotlin("multiplatform") version "1.8.0" apply false
+}
+
+allprojects {
+    repositories {
+        maven("https://maven.dimensional.fun/releases")
+        mavenCentral()
+    }
 }
 
 subprojects {
-    repositories {
-        mavenCentral()
-    }
+    apply(plugin = "maven-publish")
 
     tasks {
         withType<KotlinCompile> {
 
             kotlinOptions {
-                jvmTarget = "11"
+                jvmTarget = "16"
                 freeCompilerArgs = listOf(
                     "-Xopt-in=kotlin.contracts.ExperimentalContracts",
                     "-Xopt-in=kotlin.RequiresOptIn"
@@ -25,8 +30,8 @@ subprojects {
         }
 
         withType<JavaCompile> {
-            sourceCompatibility = "11"
-            targetCompatibility = "11"
+            sourceCompatibility = "16"
+            targetCompatibility = "16"
         }
     }
 }
